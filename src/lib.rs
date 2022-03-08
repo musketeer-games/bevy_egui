@@ -592,7 +592,7 @@ pub fn setup_pipeline(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bevy::{render::options::WgpuOptions, winit::WinitPlugin, DefaultPlugins};
+    use bevy::{render::settings::WgpuSettings, winit::WinitPlugin, DefaultPlugins};
 
     #[test]
     fn test_readme_deps() {
@@ -602,7 +602,7 @@ mod tests {
     #[test]
     fn test_headless_mode() {
         App::new()
-            .insert_resource(WgpuOptions {
+            .insert_resource(WgpuSettings {
                 backends: None,
                 ..Default::default()
             })
