@@ -4,8 +4,8 @@ use crate::{EguiContext, EguiInput, EguiOutput, EguiRenderOutput, EguiSettings, 
 #[cfg(feature = "open_url")]
 use bevy::log;
 use bevy::{
-    app::EventReader,
     core::Time,
+    ecs::event::EventReader,
     ecs::system::{Local, Res, ResMut, SystemParam},
     input::{
         keyboard::{KeyCode, KeyboardInput},
@@ -19,6 +19,9 @@ use bevy::{
     },
     winit::WinitWindows,
 };
+use bevy::ecs::event::EventWriter;
+use bevy::ecs::system::NonSend;
+use bevy::window::RequestRedraw;
 
 #[derive(SystemParam)]
 pub struct InputEvents<'w, 's> {
@@ -341,7 +344,8 @@ pub fn process_output(
     mut egui_output: ResMut<HashMap<WindowId, EguiOutput>>,
     mut egui_render_output: ResMut<HashMap<WindowId, EguiRenderOutput>>,
     #[cfg(feature = "manage_clipboard")] mut egui_clipboard: ResMut<crate::EguiClipboard>,
-    winit_windows: Option<Res<WinitWindows>>,
+    winit_windows: Option<NonSend<WinitWindows>>,
+    mut event: EventWriter<RequestRedraw>,
 ) {
     let window_ids: Vec<_> = egui_context.ctx.keys().copied().collect();
     for window_id in window_ids {
@@ -350,7 +354,7 @@ pub fn process_output(
             platform_output,
             shapes,
             textures_delta,
-            needs_repaint: _, // TODO: only repaint if needed
+            needs_repaint, // TODO: only repaint if needed
         } = full_output;
 
         let egui_render_output = egui_render_output.entry(window_id).or_default();
@@ -371,6 +375,10 @@ pub fn process_output(
                         .unwrap_or(winit::window::CursorIcon::Default),
                 );
             }
+        }
+
+        if needs_repaint {
+            event.send(RequestRedraw)
         }
 
         // TODO: see if we can support `new_tab`.

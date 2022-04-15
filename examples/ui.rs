@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContext, EguiPlugin, EguiSettings};
+use bevy::winit::WinitSettings;
+use bevy::window::PresentMode;
 
 struct Images {
     bevy_icon: Handle<Image>,
@@ -26,7 +28,12 @@ fn main() {
         .insert_resource(Msaa { samples: 4 })
         .init_resource::<UiState>()
         .add_plugins(DefaultPlugins)
+        .insert_resource(WinitSettings::desktop_app())
         .add_plugin(EguiPlugin)
+        .insert_resource(WindowDescriptor {
+            present_mode: PresentMode::Mailbox,
+            ..Default::default()
+        })
         .add_startup_system(configure_visuals)
         .add_system(update_ui_scale_factor)
         .add_system(ui_example)
